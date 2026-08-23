@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarifs | Forfait de base</title>
+  <style>
+    :root { --ink: #17212b; --muted: #687481; --line: #dce5e8; --surface: #fff; --accent: #e66a3d; --accent-dark: #bd4b25; --page: #f3f7f5; font-family: "Trebuchet MS", "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { min-width: 320px; min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 32px 16px; color: var(--ink); background: radial-gradient(circle at 12% 10%, #d9eee6 0 16%, transparent 38%), var(--page); }
+    main { display: grid; gap: 24px; width: min(100%, 820px); place-items: center; }
+    pricing-card { display: block; width: min(100%, 390px); }
+    .pricing-card { width: min(100%, 390px); overflow: hidden; background: var(--surface); border: 1px solid rgba(23, 33, 43, .08); border-radius: 18px; box-shadow: 0 20px 50px rgba(28, 61, 53, .14); }
+    .card-header { padding: 30px 30px 20px; }
+    .eyebrow { margin: 0 0 9px; color: var(--accent-dark); font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .title { margin: 0; font-size: clamp(1.7rem, 5vw, 2.1rem); line-height: 1.1; }
+    .description { margin: 11px 0 0; color: var(--muted); line-height: 1.55; }
+    .billing { display: flex; gap: 4px; margin: 0 30px 25px; padding: 4px; background: #edf3f0; border-radius: 10px; }
+    .billing-button, .btn { border: 0; font: inherit; cursor: pointer; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+    .billing-button { flex: 1; padding: 9px 8px; color: var(--muted); background: transparent; border-radius: 7px; font-size: .82rem; font-weight: 700; }
+    .billing-button[aria-pressed="true"] { color: var(--ink); background: var(--surface); box-shadow: 0 2px 8px rgba(23, 33, 43, .1); }
+    .price-area { padding: 0 30px 23px; border-bottom: 1px solid var(--line); }
+    .price { margin: 0; font-size: 2.8rem; font-weight: 800; letter-spacing: -.04em; }
+    .price-period { color: var(--muted); font-size: .95rem; letter-spacing: 0; }
+    .saving { display: inline-block; margin-top: 7px; padding: 4px 8px; color: #247158; background: #e3f5ed; border-radius: 5px; font-size: .75rem; font-weight: 700; }
+    .features { display: grid; gap: 14px; margin: 0; padding: 24px 30px 6px; list-style: none; }
+    .features li { position: relative; padding-left: 27px; color: #43515b; line-height: 1.35; }
+    .features li::before { content: "✓"; position: absolute; left: 0; color: var(--accent-dark); font-weight: 800; }
+    .card-footer { padding: 22px 30px 30px; }
+    .btn { width: 100%; padding: 13px 18px; color: #fff; background: var(--accent); border-radius: 9px; font-weight: 800; }
+    .btn:hover, .btn:focus-visible { background: var(--accent-dark); transform: translateY(-1px); }
+    .btn:focus-visible, .billing-button:focus-visible { outline: 3px solid rgba(230, 106, 61, .3); outline-offset: 2px; }
+    .status { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: .8rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <main>
+    <pricing-card
+      title="Forfait de base"
+      description="Les essentiels pour lancer votre projet sans complexité."
+      monthly-price="9,99"
+      annual-price="7,99"
+      features="1 Go de stockage|Assistance de base|Toutes les fonctionnalités principales">
+    </pricing-card>
+  </main>
+  <script>
+    class PricingCard extends HTMLElement {
+      connectedCallback() {
+        const title = this.getAttribute('title') || 'Forfait';
+        const description = this.getAttribute('description') || '';
+        const monthlyPrice = this.getAttribute('monthly-price') || '0,00';
+        const annualPrice = this.getAttribute('annual-price') || monthlyPrice;
+        const features = (this.getAttribute('features') || '').split('|').map((feature) => feature.trim()).filter(Boolean);
+
+        this.innerHTML = `<article class="pricing-card" data-pricing-card>
+          <header class="card-header"><p class="eyebrow">Pour commencer</p><h1 class="title"></h1><p class="description"></p></header>
+          <div class="billing" aria-label="Fréquence de facturation"><button class="billing-button" type="button" data-billing="monthly" aria-pressed="true">Mensuel</button><button class="billing-button" type="button" data-billing="annual" aria-pressed="false">Annuel</button></div>
+          <section class="price-area" aria-live="polite"><p class="price"><span data-price></span> <span class="price-period">$/mois</span></p><span class="saving" data-saving hidden>Économisez 20 %</span></section>
+          <ul class="features"></ul>
+          <footer class="card-footer"><button class="btn" type="button" data-action="trial">Démarrer l'essai</button><p class="status" data-status role="status" aria-live="polite"></p></footer>
+        </article>`;
+
+        const card = this.querySelector('[data-pricing-card]');
+        const price = card.querySelector('[data-price]');
+        const period = card.querySelector('.price-period');
+        const saving = card.querySelector('[data-saving]');
+        const status = card.querySelector('[data-status]');
+        card.querySelector('.title').textContent = title;
+        card.querySelector('.description').textContent = description;
+        price.textContent = monthlyPrice;
+        features.forEach((feature) => { const item = document.createElement('li'); item.textContent = feature; card.querySelector('.features').append(item); });
+
+        card.querySelectorAll('[data-billing]').forEach((button) => button.addEventListener('click', () => {
+          const annual = button.dataset.billing === 'annual';
+          card.querySelectorAll('[data-billing]').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+          price.textContent = annual ? annualPrice : monthlyPrice;
+          period.textContent = annual ? "$/mois, facturé annuellement" : "$/mois";
+          saving.hidden = !annual;
+          status.textContent = '';
+        }));
+        card.querySelector('[data-action="trial"]').addEventListener('click', () => { status.textContent = "Votre essai gratuit est prêt à commencer."; });
+      }
+    }
+    customElements.define('pricing-card', PricingCard);
+  </script>
+</body>
+</html>
